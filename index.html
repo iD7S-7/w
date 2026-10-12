@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بيئة تجربة سكربتات FiveM & Discord</title>
+    <!-- CodeMirror Editor CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #1a1a24;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        /* Header */
+        header {
+            background-color: #121218;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a38;
+        }
+        .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #f40552; /* FiveM Red/Orange Accent */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-run { background-color: #28a745; color: white; }
+        .btn-run:hover { background-color: #218838; }
+        .btn-clear { background-color: #dc3545; color: white; }
+        .btn-clear:hover { background-color: #c82333; }
+        
+        /* Main Layout */
+        .container {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+        .editor-section {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #2a2a38;
+        }
+        .preview-section {
+            width: 40%;
+            background-color: #0f0f15;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* CodeMirror Custom Fixes */
+        .CodeMirror {
+            height: 100% !important;
+            font-size: 14px;
+            direction: ltr;
+        }
+
+        /* F8 Console Modal Overlay */
+        .f8-console {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: rgba(10, 10, 15, 0.95);
+            border-bottom: 2px solid #f40552;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            direction: ltr;
+            font-family: 'Consolas', 'Courier New', monospace;
+            z-index: 100;
+            transition: transform 0.3s ease-in-out;
+        }
+        .f8-console.hidden {
+            transform: translateY(-100%);
+        }
+        .f8-header {
+            background-color: #050508;
+            padding: 8px 15px;
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #222;
+        }
+        .f8-logs {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .log-entry { margin-bottom: 4px; }
+        .log-info { color: #00fff2; }
+        .log-warn { color: #ffcc00; }
+        .log-error { color: #ff4444; }
+        .log-success { color: #00ff66; }
+
+        .f8-toggle-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            font-size: 12px;
+            padding: 5px 10px;
+            z-index: 101;
+        }
+
+        /* Game Screen Mockup */
+        .game-hud {
+            text-align: center;
+            color: #666;
+        }
+        .notification-box {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 20, 30, 0.9);
+            border-right: 4px solid #00a2ff;
+            padding: 12px 20px;
+            border-radius: 4px;
+            display: none;
+            direction: rtl;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            ⚡ محاكي السكربتات (FiveM & Discord)
+        </div>
+        <div class="controls">
+            <button class="btn-run" onclick="runScript()">▶ تشغيل السكربت</button>
+            <button class="btn-clear" onclick="clearConsole()">مسح F8</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- قسم محرر الأكواد -->
+        <div class="editor-section">
+            <textarea id="code-editor">
+-- سكربت تجريبي لجلب معلومات لاعب واستدعاء إشعار FiveM / Discord
+print("FiveM Framework Loaded Successfully.")
+
+local playerName = "Player_Saudi"
+local playerId = 1
+
+function TriggerClientNotification(msg)
+    print("^2[SUCCESS]^7 Notification sent to " .. playerName .. ": " .. msg)
+    showGameNotification(msg)
+end
+
+-- تجربة إشعار ورسالة F8
+print("^3[WARN]^7 Checking Discord Webhook status...")
+TriggerClientNotification("مرحباً بك في سيرفر التجربة!")
+            </textarea>
+        </div>
+
+        <!-- قسم المعاينة وشاشة F8 -->
+        <div class="preview-section">
+            <button class="f8-toggle-btn" onclick="toggleF8()">اضغط F8 أو انقر هنا للوحدة</button>
+
+            <!-- F8 Console -->
+            <div class="f8-console" id="f8Console">
+                <div class="f8-header">
+                    <span>FiveM Client Console (F8)</span>
+                    <span>v2026.1 - Sandbox Mode</span>
+                </div>
+                <div class="f8-logs" id="f8Logs">
+                    <div class="log-entry log-info">> System initialized. Press F8 to toggle console.</div>
+                </div>
+            </div>
+
+            <!-- Game HUD / Interface Preview -->
+            <div class="game-hud">
+                <p>🎮 شاشة اللعبة / المعاينة الحية</p>
+                <small>ستظهر التنبيهات والواجهات هنا تلقائياً</small>
+            </div>
+
+            <div class="notification-box" id="gameNotification">
+                <strong id="notifTitle">تنبيه النظام</strong>
+                <p id="notifBody">محتوى الرسالة...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CodeMirror Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/lua/lua.min.js"></script>
+
+    <script>
+        // تهيئة محرر الأكواد
+        const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+            mode: "lua",
+            theme: "dracula",
+            lineNumbers: true,
+            tabSize: 2
+        });
+
+        // التحكم بشاشة F8 عبر زر الكيبورد F8
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'F8') {
+                e.preventDefault();
+                toggleF8();
+            }
+        });
+
+        function toggleF8() {
+            document.getElementById('f8Console').classList.toggle('hidden');
+        }
+
+        function printToF8(text, type = 'info') {
+            const logsContainer = document.getElementById('f8Logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            
+            // استبدال الألوان بنمط FiveM (^1, ^2, ^3...)
+            let formattedText = text
+                .replace(/\^1/g, '<span style="color:#ff4444">')
+                .replace(/\^2/g, '<span style="color:#00ff66">')
+                .replace(/\^3/g, '<span style="color:#ffcc00">')
+                .replace(/\^7/g, '</span>');
+
+            entry.innerHTML = `> ${formattedText}`;
+            logsContainer.appendChild(entry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('f8Logs').innerHTML = '<div class="log-entry log-info">> Console cleared.</div>';
+        }
+
+        function showGameNotification(text) {
+            const notif = document.getElementById('gameNotification');
+            document.getElementById('notifBody').innerText = text;
+            notif.style.display = 'block';
+            setTimeout(() => {
+                notif.style.display = 'none';
+            }, 4000);
+        }
+
+        // محاكي تشغيل سكربت (Lua JS Bridge)
+        function runScript() {
+            const code = editor.getValue();
+            printToF8("^2[EXECUTE]^7 Running lua script...", "success");
+
+            try {
+                // محاكاة الأوامر الأساسية في FiveM داخل البيئة
+                const lines = code.split('\n');
+                lines.forEach(line => {
+                    if (line.includes('print(')) {
+                        let match = line.match(/print\((.*)\)/);
+                        if (match) {
+                            let content = match[1].replace(/["']/g, '');
+                            if (content.includes('^1')) printToF8(content, 'error');
+                            else if (content.includes('^3')) printToF8(content, 'warn');
+                            else if (content.includes('^2')) printToF8(content, 'success');
+                            else printToF8(content, 'info');
+                        }
+                    }
+                    if (line.includes('TriggerClientNotification(') || line.includes('showGameNotification(')) {
+                        let match = line.match(/\((.*)\)/);
+                        if (match) {
+                            let msg = match[1].replace(/["']/g, '');
+                            showGameNotification(msg);
+                        }
+                    }
+                });
+            } catch (err) {
+                printToF8("^1[ERROR]^7 " + err.message, "error");
+            }
+        }
+    </script>
+</body>
+</html>
